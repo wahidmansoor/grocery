@@ -1,0 +1,1077 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Grocery List Builder — Master Household (Feb 2026)</title>
+  <style>
+    :root{
+      --bg:#fffdf6;
+      --card:#ffffff;
+      --ink:#1a2744;
+      --muted:#6b7280;
+      --line:#e7e2d8;
+      --accent:#4bb8f5;
+      --good:#52c16a;
+      --warn:#ff9740;
+      --danger:#ff6b6b;
+      --r:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+    header{
+      position:sticky; top:0; z-index:50;
+      background:rgba(255,253,246,.92);
+      backdrop-filter: blur(8px);
+      border-bottom:1px solid var(--line);
+    }
+    .wrap{max-width:1150px;margin:0 auto;padding:14px 16px;}
+    .topbar{
+      display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+    }
+    h1{font-size:18px;margin:0; letter-spacing:.2px}
+    .pill{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--card);
+      color:var(--muted);
+    }
+    .search{
+      flex:1;
+      min-width:220px;
+      display:flex; gap:8px;
+      align-items:center;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:var(--card);
+    }
+    .search input{
+      border:none; outline:none; width:100%;
+      font-size:14px; background:transparent; color:var(--ink);
+    }
+    .btn{
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:13px;
+      color:var(--ink);
+      cursor:pointer;
+      display:inline-flex; gap:8px; align-items:center;
+    }
+    .btn:hover{border-color:#d7d2c7}
+    .btn.primary{background:var(--accent);border-color:transparent;color:#fff;}
+    .btn.good{background:var(--good);border-color:transparent;color:#fff;}
+    .btn.danger{background:var(--danger);border-color:transparent;color:#fff;}
+    .btn.small{padding:8px 10px; font-size:12px; border-radius:10px;}
+    .subnote{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.35}
+    main .wrap{padding-top:18px;padding-bottom:96px;}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.45fr .85fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      box-shadow:0 6px 18px rgba(0,0,0,.05);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      flex-wrap:wrap;
+    }
+    .card .hd h2{margin:0;font-size:14px;}
+    .card .bd{padding:12px 14px;}
+    .kpi{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:13px;}
+    .kpi strong{font-weight:800}
+
+    .tabs{display:flex; gap:8px; flex-wrap:wrap;}
+    .tab{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--card);
+      cursor:pointer;
+      font-size:12px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .tab.active{
+      background:#eaf6fe;
+      border-color:#bfe7fb;
+      color:var(--ink);
+    }
+
+    details.category{
+      border:1px solid var(--line);
+      border-radius:12px;
+      margin:10px 0;
+      overflow:hidden;
+      background:#fff;
+    }
+    details.category[open]{box-shadow:0 8px 18px rgba(0,0,0,.06);}
+    summary{
+      cursor:pointer;
+      list-style:none;
+      padding:12px 12px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      user-select:none;
+    }
+    summary::-webkit-details-marker{display:none}
+    .catTitle{display:flex;align-items:center;gap:10px;font-weight:800;font-size:13px;}
+    .badge{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:4px 8px;border-radius:999px;border:1px solid var(--line);
+      font-size:11px;color:var(--muted);background:var(--card);min-width:42px;
+    }
+    .catActions{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+
+    .items{
+      padding:12px;
+      border-top:1px solid var(--line);
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 560px){
+      .items{grid-template-columns:1fr}
+    }
+    .item{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      background:var(--card);
+    }
+    .item input[type="checkbox"]{transform:translateY(2px)}
+    .itemName{font-weight:700;font-size:13px;}
+    .itemMeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;}
+    .qty{
+      display:inline-flex;align-items:center;gap:6px;
+      border:1px solid var(--line);border-radius:999px;padding:4px 8px;background:#fff;
+    }
+    .qty input{
+      width:52px;border:none;outline:none;font-size:12px;background:transparent;color:var(--ink);
+    }
+    .unit{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:12px;
+      background:#fff;
+      color:var(--ink);
+      outline:none;
+    }
+    .note{
+      flex:1;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:6px 8px;
+      font-size:12px;
+      outline:none;
+      min-width: 120px;
+    }
+
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .field{
+      display:flex; gap:8px; align-items:center; flex:1;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      background:#fff;
+      min-width:220px;
+    }
+    .field input{
+      border:none; outline:none; width:100%;
+      font-size:13px; background:transparent; color:var(--ink);
+    }
+
+    .listBlock{
+      white-space:pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:12.5px;
+      line-height:1.45;
+      background:#0b1220;
+      color:#e6edf7;
+      border-radius:12px;
+      padding:12px;
+      border:1px solid #101b33;
+      min-height:220px;
+    }
+
+    .footerBar{
+      position:fixed; left:0; right:0; bottom:0; z-index:60;
+      border-top:1px solid var(--line);
+      background:rgba(255,253,246,.96);
+      backdrop-filter: blur(8px);
+    }
+    .footerBar .wrap{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    }
+    .toast{
+      position:fixed;
+      right:16px; bottom:92px;
+      background:#0b1220; color:#e6edf7;
+      border:1px solid #101b33;
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:12px;
+      box-shadow:0 12px 28px rgba(0,0,0,.18);
+      opacity:0; transform: translateY(8px);
+      transition: all .2s ease;
+      pointer-events:none;
+      max-width: 340px;
+    }
+    .toast.show{opacity:1; transform: translateY(0);}
+    .hide{display:none !important}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <h1>🛒 Grocery List Builder</h1>
+      <span class="pill" id="statusPill">0 selected</span>
+      <div class="search" title="Search items">
+        🔎 <input id="search" type="search" placeholder="Search items… (e.g., milk, rice, onions)" />
+      </div>
+      <button class="btn" id="toggleAll">Expand all</button>
+      <button class="btn danger" id="clearAll">Clear</button>
+      <button class="btn primary" id="generateBtn">Generate list</button>
+    </div>
+    <div class="subnote">
+      Tick items, optionally add <b>Qty / Unit / Note</b>. Saved automatically on this device. <span class="pill">Last updated: February 2026</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="grid">
+      <!-- LEFT: CATALOG -->
+      <section class="card">
+        <div class="hd">
+          <h2>Pick Items</h2>
+          <div class="tabs">
+            <div class="tab active" data-filter="all">All</div>
+            <div class="tab" data-filter="selected">Selected</div>
+            <div class="tab" data-filter="unselected">Unselected</div>
+          </div>
+        </div>
+        <div class="bd" id="catalog"></div>
+      </section>
+
+      <!-- RIGHT: OUTPUT -->
+      <aside class="card">
+        <div class="hd">
+          <h2>Output</h2>
+          <div class="kpi">
+            <span class="pill">Categories: <strong id="kCats">0</strong></span>
+            <span class="pill">Items: <strong id="kItems">0</strong></span>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="row">
+            <div class="field">
+              🏷️ <input id="listTitle" placeholder="List title (e.g., Weekly Groceries)" value="Grocery List" />
+            </div>
+            <button class="btn small" id="copyBtn">Copy</button>
+            <button class="btn small" id="printBtn">Print</button>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="row">
+            <div class="field">
+              ➕ <input id="customItem" placeholder="Add custom item (e.g., 'Diapers' or 'Cat food')" />
+            </div>
+            <select class="unit" id="customCategory" title="Category for custom item"></select>
+            <button class="btn small good" id="addCustom">Add</button>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="listBlock" id="output" aria-live="polite">Select items, then press “Generate list”.</div>
+
+          <div class="subnote">
+            This app is already loaded with your <b>Complete & Enhanced Edition</b> list (Feb 2026).
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<div class="footerBar">
+  <div class="wrap">
+    <div class="kpi">
+      <span class="pill">Selected: <strong id="selCount">0</strong></span>
+      <span class="pill">Matched by search: <strong id="matchCount">0</strong></span>
+    </div>
+    <div class="row">
+      <button class="btn" id="saveJsonBtn">Export selections (JSON)</button>
+      <label class="btn" style="cursor:pointer">
+        Import JSON
+        <input id="importJson" type="file" accept="application/json" class="hide" />
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================
+   DATA: Your modified list
+   ========================= */
+const DATA = [
+  {
+    name: "Fresh Produce — Vegetables",
+    items: [
+      "Onions (red, white, yellow)","Garlic","Shallots","Spring onions / Scallions","Tomatoes","Cherry tomatoes",
+      "Potatoes","Sweet potatoes","Carrots","Bell peppers (red, yellow, green)","Cucumbers","Zucchini / Courgette",
+      "Eggplant / Aubergine","Broccoli","Cauliflower","Spinach","Rocket / Arugula","Kale","Lettuce (iceberg, romaine)",
+      "Cabbage (white, red)","Brussels sprouts","Green beans","Snap peas / Snow peas","Peas","Corn",
+      "Mushrooms (button, portobello, shiitake)","Ginger","Turmeric root","Chili peppers","Jalapeños",
+      "Celery","Leeks","Asparagus","Beetroot","Radishes","Turnips","Artichokes","Bok choy",
+      "Fresh herbs (parsley, coriander, mint, basil, thyme, rosemary, dill, chives)"
+    ]
+  },
+  {
+    name: "Fresh Produce — Fruits",
+    items: [
+      "Apples","Bananas","Oranges","Mandarins / Clementines","Lemons","Limes","Grapes (red, green, black)",
+      "Mangoes","Pineapple","Pomegranate","Berries (strawberries, blueberries, raspberries, blackberries)",
+      "Watermelon / Melon","Cantaloupe","Dates","Avocados","Pears","Peaches / Nectarines (seasonal)","Plums","Kiwi",
+      "Figs","Papaya","Dragon fruit","Passion fruit","Lychee","Coconut"
+    ]
+  },
+
+  {
+    name: "Meat, Poultry & Seafood",
+    items: [
+      "Whole chicken","Chicken breasts","Chicken thighs","Chicken wings","Chicken drumsticks",
+      "Minced beef","Beef cubes (for stew)","Beef steaks (ribeye, sirloin)","Beef ribs","Veal",
+      "Lamb chops","Lamb cubes","Lamb mince",
+      "Pork chops","Pork tenderloin","Minced pork",
+      "Fish (fresh or frozen – salmon, sea bass, tilapia)","Shrimp / Prawns","Tuna (fresh or canned)","Salmon fillets",
+      "Crab","Squid / Calamari","Mussels",
+      "Sausages","Cold cuts (turkey, beef, pastrami)","Bacon (if used)","Mortadella","Smoked salmon"
+    ]
+  },
+
+  {
+    name: "Dairy & Refrigerated Items",
+    items: [
+      "Milk (full / low fat / skim)","Long-life UHT milk","Yogurt (plain & flavored)","Greek yogurt","Labneh","Kefir",
+      "Sour cream","Cheese slices","Mozzarella (block & fresh balls)","Cheddar","Cream cheese","Feta cheese","Halloumi",
+      "Parmesan","Gouda","Ricotta","Brie / Camembert",
+      "Butter (salted & unsalted)","Margarine","Whipping cream","Cooking cream","Double cream","Custard",
+      "Eggs (white & brown)","Liquid egg whites",
+      "Orange juice (chilled, fresh-squeezed)"
+    ]
+  },
+
+  {
+    name: "Bakery & Grains",
+    items: [
+      "White bread","Whole wheat bread","Sourdough bread","Multigrain bread",
+      "Burger buns","Hot dog buns","Brioche buns",
+      "Arabic bread / Pita","Tortillas (flour & corn)","Naan bread",
+      "Croissants","Bagels","English muffins",
+      "Rice (basmati, white, jasmine)","Brown rice","Wild rice","Arborio rice (for risotto)",
+      "Pasta (spaghetti, penne, fusilli, fettuccine)","Macaroni","Lasagna sheets","Egg noodles","Rice noodles","Glass noodles",
+      "Oats (rolled & quick)","Flour (all-purpose)","Whole wheat flour","Corn flour / Cornstarch","Semolina",
+      "Self-raising flour","Almond flour",
+      "Bread crumbs","Panko breadcrumbs",
+      "Couscous","Quinoa","Bulgur wheat","Barley","Buckwheat","Polenta",
+      "Breakfast cereal","Muesli","Granola",
+      "Pancake mix","Waffle mix"
+    ]
+  },
+
+  {
+    name: "Canned & Dry Goods",
+    items: [
+      "Canned tomatoes (whole, crushed, diced)","Tomato paste",
+      "Canned beans (kidney, black, white, pinto)",
+      "Chickpeas (canned & dried)","Lentils (red, green, brown)","Split peas",
+      "Corn (canned)",
+      "Tuna (canned in oil & water)","Sardines","Anchovies","Canned salmon",
+      "Coconut milk","Coconut cream","Evaporated milk","Condensed milk",
+      "Soup (ready-made, various)",
+      "Stock cubes (chicken, beef, vegetable, fish)","Liquid stock / Bone broth",
+      "Instant noodles / Ramen",
+      "Pasta sauce","Tomato-based sauces",
+      "Peanut butter","Almond butter","Tahini",
+      "Jam (strawberry, apricot, mixed)","Marmalade","Honey","Dates syrup / Molasses","Maple syrup","Agave nectar",
+      "Nutella / Hazelnut spread",
+      "Dried fruits (raisins, apricots, cranberries, prunes)","Dried mushrooms","Sun-dried tomatoes",
+      "Capers","Olives (green & black)","Pickles / Gherkins","Pickled vegetables (jalapeños, pepperoncini)","Roasted red peppers"
+    ]
+  },
+
+  {
+    name: "Oils, Condiments & Spices — Oils & Vinegars",
+    items: [
+      "Olive oil (extra virgin & light)","Vegetable oil","Sunflower oil","Coconut oil","Sesame oil","Avocado oil","Canola oil","Ghee",
+      "Vinegar (white, apple cider)","Balsamic vinegar","Red wine vinegar","Rice vinegar"
+    ]
+  },
+  {
+    name: "Oils, Condiments & Spices — Sauces & Condiments",
+    items: [
+      "Ketchup","Mayonnaise","Mustard (yellow & Dijon)","Soy sauce","Tamari (gluten-free soy)","Worcestershire sauce",
+      "Hot sauce / Tabasco","Sriracha","BBQ sauce","Sweet chili sauce","Oyster sauce","Fish sauce","Hoisin sauce","Teriyaki sauce",
+      "Pomegranate molasses","Harissa","Miso paste","Lemon curd","Salad dressings (ranch, Caesar, vinaigrette)","Relish"
+    ]
+  },
+  {
+    name: "Oils, Condiments & Spices — Spices & Dried Herbs",
+    items: [
+      "Salt (table, sea salt, kosher)","Black pepper (whole & ground)","White pepper",
+      "Cumin (whole & ground)","Coriander powder","Turmeric","Paprika (sweet & smoked)","Chili powder / Cayenne",
+      "Cinnamon (sticks & ground)","Garam masala","Curry powder",
+      "Oregano","Thyme","Rosemary","Bay leaves","Mixed herbs",
+      "Allspice","Cardamom","Cloves","Nutmeg","Star anise","Fennel seeds","Mustard seeds",
+      "Sumac","Za'atar","Dried chili flakes"
+    ]
+  },
+  {
+    name: "Oils, Condiments & Spices — Baking Essentials",
+    items: [
+      "Sugar (white, brown, caster, powdered)","Baking powder","Baking soda","Yeast (active dry & instant)",
+      "Vanilla extract / Vanilla pods","Cream of tartar","Gelatin / Agar agar","Cocoa powder",
+      "Dark, milk & white chocolate chips","Food coloring","Desiccated coconut"
+    ]
+  },
+
+  {
+    name: "Beverages",
+    items: [
+      "Bottled water (still & sparkling)","Sparkling water / Soda water",
+      "Juice (orange, apple, mango, pomegranate, mixed)","Nectar drinks",
+      "Tea bags (black, green, herbal, chamomile, mint)","Green tea",
+      "Arabic coffee / Qahwa","Turkish coffee","Ground coffee (espresso, filter)","Instant coffee",
+      "Cold brew concentrate","Coffee pods / Capsules",
+      "Soft drinks / Sodas","Energy drinks","Sports drinks / Electrolyte drinks",
+      "Milk alternatives (almond, oat, soy, coconut)","Hot chocolate / Cocoa mix",
+      "Lemonade","Tonic water","Ginger ale","Tomato juice"
+    ]
+  },
+
+  {
+    name: "Snacks & Sweets",
+    items: [
+      "Biscuits","Cookies (chocolate chip, oatmeal)","Chocolate (dark, milk, white)","Chocolate bars",
+      "Chips / Crisps (plain, flavored)","Popcorn",
+      "Nuts (almonds, cashews, peanuts, walnuts, pistachios, hazelnuts)","Mixed nuts",
+      "Seeds (sunflower, pumpkin, chia, flax, sesame)","Trail mix",
+      "Crackers (plain, whole wheat, rice)","Rice cakes",
+      "Granola bars / Protein bars","Fruit & nut bars","Dried fruit snacks",
+      "Pretzels","Pita chips","Veggie chips","Cheese crackers",
+      "Ice cream","Ice lollies / Popsicles","Sorbet",
+      "Cake mix","Brownie mix","Marshmallows","Gummy candies","Candy / Sweets","Mints",
+      "Dark chocolate-covered nuts","Halva"
+    ]
+  },
+
+  {
+    name: "Frozen Foods",
+    items: [
+      "Frozen vegetables (peas, corn, mixed veg, spinach, edamame)",
+      "Frozen fruits (berries, mango, banana, mixed)",
+      "Frozen fries / Wedges","Frozen nuggets","Frozen burgers","Frozen pizza",
+      "Frozen paratha / Chapati",
+      "Frozen dumplings / Gyoza","Frozen spring rolls","Frozen samosas",
+      "Frozen waffles","Frozen pancakes",
+      "Frozen fish fillets","Frozen shrimp",
+      "Frozen meals (ready-to-eat)","Frozen soups","Frozen herbs",
+      "Ice cream (tubs & bars)",
+      "Ice cubes / Ice bags"
+    ]
+  },
+
+  {
+    name: "Cleaning Supplies",
+    items: [
+      "Dishwashing liquid","Dishwasher tablets / Pods","Rinse aid",
+      "Laundry detergent (liquid & powder)","Laundry pods / Capsules","Fabric softener","Dryer sheets","Stain remover",
+      "Bleach","Multi-surface cleaner / Spray","Glass & mirror cleaner","Bathroom cleaner","Toilet cleaner & brush",
+      "Floor cleaner / Mop liquid","Oven & grill cleaner","Fridge deodorizer","Drain unblocker","Mold & mildew remover",
+      "Sponges & dish cloths","Scrub pads / Steel wool","Microfiber cloths","Cleaning gloves",
+      "Trash bags (various sizes)","Paper towels","Tissues / Facial tissues","Toilet paper",
+      "Aluminum foil","Cling film / Plastic wrap","Baking / Parchment paper",
+      "Ziplock bags (various sizes)","Sandwich bags","Food storage bags","Disposable gloves",
+      "Air freshener / Room spray","Candles / Scented candles"
+    ]
+  },
+
+  {
+    name: "Personal Care",
+    items: [
+      "Shampoo","Conditioner","Hair mask / Deep conditioner","Dry shampoo","Hair styling products (gel, mousse, spray)",
+      "Soap (bar & liquid)","Body wash / Shower gel","Body lotion / Moisturizer",
+      "Face wash / Cleanser","Face moisturizer / SPF","Toner","Serum","Sunscreen (face & body)",
+      "Toothpaste","Toothbrushes (soft & medium)","Dental floss","Mouthwash","Electric toothbrush heads",
+      "Deodorant / Antiperspirant","Shaving cream / Gel","Razors / Blades","Aftershave",
+      "Lip balm","Hand cream","Nail clippers / File",
+      "Cotton pads & cotton balls","Wet wipes / Baby wipes","Makeup remover",
+      "Sanitary products (pads, tampons, liners)","Feminine wash",
+      "Hand sanitizer","Rubbing alcohol","Perfume / Cologne","Eye drops","Ear drops"
+    ]
+  },
+
+  {
+    name: "Basic Health & Home Essentials",
+    items: [
+      "Paracetamol / Acetaminophen","Ibuprofen","Aspirin","Antihistamine",
+      "Antiseptic solution / Hydrogen peroxide","Antiseptic cream",
+      "Band-aids / Plasters (various sizes)","Gauze & bandages","Medical tape",
+      "Antacid / Heartburn relief","Anti-diarrhea medication","Cough syrup & lozenges",
+      "Nasal spray / Decongestant","Eye drops / Artificial tears","Thermometer",
+      "Multivitamins","Vitamin C","Vitamin D","Zinc","Omega-3 / Fish oil","Probiotics","Iron supplements","Calcium supplements",
+      "Melatonin (sleep aid)",
+      "Batteries (AA, AAA, 9V)","Light bulbs (LED)","Matches / Lighter","Candles (emergency)",
+      "Extension cord / Power strip","Duct tape","Super glue","Zip ties","Spare keys","Flashlight","Rubber bands","Safety pins"
+    ]
+  },
+
+  {
+    name: "Optional & Household-Specific — Baby & Infant",
+    items: [
+      "Baby formula","Baby food (purees, snacks)","Diapers / Nappies (various sizes)","Baby wipes (fragrance-free)",
+      "Diaper rash cream","Baby shampoo & wash","Baby lotion","Teething rings"
+    ]
+  },
+  {
+    name: "Optional & Household-Specific — Pet Supplies",
+    items: [
+      "Dry pet food (dog / cat)","Wet pet food","Pet treats","Pet litter / Sand","Pet shampoo",
+      "Flea & tick treatment","Pet supplements"
+    ]
+  },
+  {
+    name: "Optional & Household-Specific — Special Diet Items",
+    items: [
+      "Gluten-free pasta & bread","Keto-friendly snacks","Diabetic-friendly products",
+      "Plant-based protein (tofu, tempeh, seitan)","Protein powder","Meal replacement shakes","Low-sodium products"
+    ]
+  },
+  {
+    name: "Optional & Household-Specific — School Lunch & Kids",
+    items: [
+      "Juice boxes","Fruit pouches","Lunchbox snacks (mini crackers, cheese sticks)",
+      "Small water bottles","Yogurt tubes","Cereal bars"
+    ]
+  },
+  {
+    name: "Optional & Household-Specific — Baking & Decorating",
+    items: [
+      "Baking decorations (sprinkles, edible glitter)","Cupcake liners","Cake pans (disposable)",
+      "Piping bags","Food coloring (gel)","Edible flowers","Cake boards"
+    ]
+  },
+  {
+    name: "Optional & Household-Specific — Entertaining & Occasions",
+    items: [
+      "Disposable cups, plates & cutlery","Napkins (paper & cloth)","Cocktail sticks / Toothpicks",
+      "Cling-wrap food platters","Party bags & decorations","Candles for cake"
+    ]
+  }
+];
+
+/* =========================
+   App state + persistence
+   ========================= */
+const STORAGE_KEY = "grocery_app_master_feb2026_v1";
+const DEFAULT_UNITS = ["", "pcs", "kg", "g", "L", "ml", "pack", "box", "bottle", "can", "bag", "dozen"];
+
+const state = {
+  filter: "all",   // all | selected | unselected
+  query: "",
+  expandedAll: false,
+  selections: {}   // key -> {checked, qty, unit, note, category, name}
+};
+
+function keyFor(category, name){ return `${category}::${name}`; }
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === "object"){
+      state.selections = parsed.selections || {};
+      state.filter = parsed.filter || "all";
+      state.query = parsed.query || "";
+      state.expandedAll = !!parsed.expandedAll;
+      document.getElementById("listTitle").value = parsed.listTitle || "Grocery List";
+    }
+  }catch(e){}
+}
+
+function saveState(){
+  const payload = {
+    selections: state.selections,
+    filter: state.filter,
+    query: state.query,
+    expandedAll: state.expandedAll,
+    listTitle: document.getElementById("listTitle").value || "Grocery List"
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+/* =========================
+   Rendering
+   ========================= */
+const elCatalog = document.getElementById("catalog");
+const elOutput = document.getElementById("output");
+const elSearch = document.getElementById("search");
+const elStatusPill = document.getElementById("statusPill");
+const elSelCount = document.getElementById("selCount");
+const elMatchCount = document.getElementById("matchCount");
+const elKCats = document.getElementById("kCats");
+const elKItems = document.getElementById("kItems");
+const elCustomCategory = document.getElementById("customCategory");
+
+function ensureEntry(category, name){
+  const k = keyFor(category, name);
+  if(!state.selections[k]){
+    state.selections[k] = { checked:false, qty:"", unit:"", note:"", category, name };
+  }
+  return state.selections[k];
+}
+
+function matchesFilters(entry){
+  const q = state.query.trim().toLowerCase();
+  const inSearch = !q || entry.name.toLowerCase().includes(q) || entry.category.toLowerCase().includes(q);
+  if(!inSearch) return false;
+  if(state.filter === "selected") return !!entry.checked;
+  if(state.filter === "unselected") return !entry.checked;
+  return true;
+}
+
+function countSelected(){
+  return Object.values(state.selections).filter(e => e.checked).length;
+}
+
+function countMatches(){
+  let matches = 0;
+  // Known (DATA)
+  for (const cat of DATA){
+    for (const name of cat.items){
+      const e = ensureEntry(cat.name, name);
+      if(matchesFilters(e)) matches++;
+    }
+  }
+  // Custom entries not in DATA
+  for(const e of Object.values(state.selections)){
+    const isInData = DATA.some(c => c.name === e.category && c.items.includes(e.name));
+    if(!isInData && matchesFilters(e)) matches++;
+  }
+  return matches;
+}
+
+function renderCategoryOptions(){
+  elCustomCategory.innerHTML = "";
+  for(const cat of DATA){
+    const opt = document.createElement("option");
+    opt.value = cat.name;
+    opt.textContent = cat.name;
+    elCustomCategory.appendChild(opt);
+  }
+  const opt2 = document.createElement("option");
+  opt2.value = "__new__";
+  opt2.textContent = "➕ New category…";
+  elCustomCategory.appendChild(opt2);
+}
+
+function renderCatalog(){
+  elCatalog.innerHTML = "";
+
+  // Build index per category including custom items
+  const perCat = new Map();
+  for(const cat of DATA){
+    perCat.set(cat.name, new Set(cat.items));
+  }
+  for(const e of Object.values(state.selections)){
+    if(!perCat.has(e.category)) perCat.set(e.category, new Set());
+    perCat.get(e.category).add(e.name);
+  }
+
+  const categories = Array.from(perCat.keys()).sort((a,b)=>a.localeCompare(b));
+  let totalCats = categories.length;
+  let totalItems = 0;
+
+  categories.forEach(catName => {
+    const itemNames = Array.from(perCat.get(catName)).sort((a,b)=>a.localeCompare(b));
+    const entries = itemNames.map(n => ensureEntry(catName, n));
+    totalItems += entries.length;
+
+    const visibleEntries = entries.filter(matchesFilters);
+    const selectedInCat = entries.filter(e => e.checked).length;
+
+    if(visibleEntries.length === 0) return;
+
+    const det = document.createElement("details");
+    det.className = "category";
+    det.open = state.expandedAll;
+
+    const sum = document.createElement("summary");
+
+    const left = document.createElement("div");
+    left.className = "catTitle";
+    left.innerHTML = `📌 ${escapeHtml(catName)} <span class="badge">${selectedInCat}/${entries.length}</span>`;
+
+    const right = document.createElement("div");
+    right.className = "catActions";
+
+    const btnAll = document.createElement("button");
+    btnAll.className = "btn small";
+    btnAll.type = "button";
+    btnAll.textContent = "Select all";
+    btnAll.addEventListener("click", (ev)=>{
+      ev.preventDefault();
+      entries.forEach(e => e.checked = true);
+      saveState(); renderAll();
+    });
+
+    const btnNone = document.createElement("button");
+    btnNone.className = "btn small";
+    btnNone.type = "button";
+    btnNone.textContent = "None";
+    btnNone.addEventListener("click", (ev)=>{
+      ev.preventDefault();
+      entries.forEach(e => e.checked = false);
+      saveState(); renderAll();
+    });
+
+    right.appendChild(btnAll);
+    right.appendChild(btnNone);
+
+    sum.appendChild(left);
+    sum.appendChild(right);
+    det.appendChild(sum);
+
+    const items = document.createElement("div");
+    items.className = "items";
+
+    visibleEntries.forEach(entry => {
+      const row = document.createElement("div");
+      row.className = "item";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = !!entry.checked;
+      cb.addEventListener("change", ()=>{
+        entry.checked = cb.checked;
+        saveState(); renderAll(false);
+      });
+
+      const body = document.createElement("div");
+      body.style.flex = "1";
+
+      const name = document.createElement("div");
+      name.className = "itemName";
+      name.textContent = entry.name;
+
+      const meta = document.createElement("div");
+      meta.className = "itemMeta";
+
+      const qty = document.createElement("div");
+      qty.className = "qty";
+      qty.innerHTML = `Qty <input inputmode="decimal" placeholder="-" value="${escapeAttr(entry.qty)}" aria-label="Quantity">`;
+      const qtyInput = qty.querySelector("input");
+      qtyInput.addEventListener("input", ()=>{
+        entry.qty = qtyInput.value.trim();
+        saveState();
+      });
+
+      const unit = document.createElement("select");
+      unit.className = "unit";
+      DEFAULT_UNITS.forEach(u=>{
+        const o = document.createElement("option");
+        o.value = u;
+        o.textContent = u === "" ? "unit" : u;
+        unit.appendChild(o);
+      });
+      unit.value = entry.unit || "";
+      unit.addEventListener("change", ()=>{
+        entry.unit = unit.value;
+        saveState();
+      });
+
+      const note = document.createElement("input");
+      note.className = "note";
+      note.placeholder = "Note (optional)";
+      note.value = entry.note || "";
+      note.addEventListener("input", ()=>{
+        entry.note = note.value;
+        saveState();
+      });
+
+      meta.appendChild(qty);
+      meta.appendChild(unit);
+      meta.appendChild(note);
+
+      body.appendChild(name);
+      body.appendChild(meta);
+
+      row.appendChild(cb);
+      row.appendChild(body);
+      items.appendChild(row);
+    });
+
+    det.appendChild(items);
+    elCatalog.appendChild(det);
+  });
+
+  elKCats.textContent = String(totalCats);
+  elKItems.textContent = String(totalItems);
+
+  const sel = countSelected();
+  elStatusPill.textContent = `${sel} selected`;
+  elSelCount.textContent = String(sel);
+  elMatchCount.textContent = String(countMatches());
+}
+
+function generateListText(){
+  const title = (document.getElementById("listTitle").value || "Grocery List").trim();
+  const selected = Object.values(state.selections).filter(e => e.checked);
+
+  if(selected.length === 0){
+    return "No items selected yet.\n\nTip: tick items on the left, then click “Generate list”.";
+  }
+
+  const groups = new Map();
+  for(const e of selected){
+    if(!groups.has(e.category)) groups.set(e.category, []);
+    groups.get(e.category).push(e);
+  }
+
+  const categories = Array.from(groups.keys()).sort((a,b)=>a.localeCompare(b));
+  let out = `${title}\n${"=".repeat(title.length)}\n\n`;
+
+  for(const cat of categories){
+    out += `• ${cat}\n`;
+    const items = groups.get(cat).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    for(const e of items){
+      const q = e.qty ? e.qty : "";
+      const u = e.unit ? e.unit : "";
+      const qtyPart = q ? (u ? `${q} ${u}` : `${q}`) : "";
+      const notePart = (e.note && e.note.trim()) ? ` — ${e.note.trim()}` : "";
+      out += `  - ${e.name}${qtyPart ? ` (${qtyPart})` : ""}${notePart}\n`;
+    }
+    out += "\n";
+  }
+
+  out += `Total items: ${selected.length}\n`;
+  return out.trim();
+}
+
+function renderOutput(){
+  const alreadyGenerated = elOutput.dataset.generated === "1";
+  if(alreadyGenerated){
+    elOutput.textContent = generateListText();
+  }
+}
+
+function renderAll(updateCatalog = true){
+  if(updateCatalog) renderCatalog();
+  renderOutput();
+}
+
+/* =========================
+   Utilities
+   ========================= */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+function escapeAttr(s){
+  return String(s ?? "").replace(/"/g, "&quot;");
+}
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._tm);
+  toast._tm = setTimeout(()=>t.classList.remove("show"), 1600);
+}
+
+/* =========================
+   Events
+   ========================= */
+document.getElementById("generateBtn").addEventListener("click", ()=>{
+  elOutput.dataset.generated = "1";
+  elOutput.textContent = generateListText();
+  toast("List generated.");
+});
+
+document.getElementById("copyBtn").addEventListener("click", async ()=>{
+  const text = (elOutput.dataset.generated === "1") ? elOutput.textContent : generateListText();
+  try{
+    await navigator.clipboard.writeText(text);
+    toast("Copied to clipboard.");
+  }catch(e){
+    toast("Copy failed (browser blocked).");
+  }
+});
+
+document.getElementById("printBtn").addEventListener("click", ()=>{
+  const text = (elOutput.dataset.generated === "1") ? elOutput.textContent : generateListText();
+  const w = window.open("", "_blank");
+  w.document.write(`
+    <html><head><title>Print Grocery List</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;margin:24px;color:#111}
+      pre{white-space:pre-wrap;font-size:14px;line-height:1.5}
+    </style></head>
+    <body><pre>${escapeHtml(text)}</pre></body></html>
+  `);
+  w.document.close();
+  w.focus();
+  w.print();
+  w.close();
+});
+
+document.getElementById("clearAll").addEventListener("click", ()=>{
+  for(const e of Object.values(state.selections)){
+    e.checked = false;
+  }
+  saveState();
+  elOutput.dataset.generated = "0";
+  elOutput.textContent = "Select items, then press “Generate list”.";
+  renderAll();
+  toast("Cleared.");
+});
+
+document.getElementById("toggleAll").addEventListener("click", ()=>{
+  state.expandedAll = !state.expandedAll;
+  document.getElementById("toggleAll").textContent = state.expandedAll ? "Collapse all" : "Expand all";
+  saveState();
+  renderCatalog();
+});
+
+elSearch.addEventListener("input", ()=>{
+  state.query = elSearch.value;
+  saveState();
+  renderCatalog();
+});
+
+document.getElementById("listTitle").addEventListener("input", ()=>{
+  saveState();
+  renderOutput();
+});
+
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    state.filter = tab.dataset.filter;
+    saveState();
+    renderCatalog();
+  });
+});
+
+document.getElementById("addCustom").addEventListener("click", ()=>{
+  const input = document.getElementById("customItem");
+  const name = (input.value || "").trim();
+  if(!name){ toast("Type an item first."); return; }
+
+  let cat = elCustomCategory.value;
+  if(cat === "__new__"){
+    cat = prompt("New category name:");
+    if(!cat) return;
+    cat = cat.trim();
+    if(!cat) return;
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    elCustomCategory.insertBefore(opt, elCustomCategory.lastElementChild);
+    elCustomCategory.value = cat;
+  }
+
+  const entry = ensureEntry(cat, name);
+  entry.checked = true;
+  saveState();
+  input.value = "";
+  renderAll();
+  toast("Added & selected.");
+});
+
+document.getElementById("saveJsonBtn").addEventListener("click", ()=>{
+  const payload = {
+    listTitle: document.getElementById("listTitle").value || "Grocery List",
+    selections: state.selections
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "grocery-selections.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+document.getElementById("importJson").addEventListener("change", async (ev)=>{
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    if(parsed && parsed.selections){
+      state.selections = parsed.selections;
+      if(parsed.listTitle) document.getElementById("listTitle").value = parsed.listTitle;
+      saveState();
+      renderAll();
+      toast("Imported.");
+    }else{
+      toast("Invalid JSON.");
+    }
+  }catch(e){
+    toast("Import failed.");
+  }finally{
+    ev.target.value = "";
+  }
+});
+
+/* =========================
+   Boot
+   ========================= */
+loadState();
+renderCategoryOptions();
+
+elSearch.value = state.query || "";
+document.getElementById("toggleAll").textContent = state.expandedAll ? "Collapse all" : "Expand all";
+document.querySelectorAll(".tab").forEach(t=>{
+  t.classList.toggle("active", t.dataset.filter === state.filter);
+});
+
+renderAll();
+</script>
+</body>
+</html>
